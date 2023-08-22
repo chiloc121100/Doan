@@ -1,0 +1,243 @@
+﻿@model IEnumerable<AuctionProject.Models.Product>
+
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+@*<h1>@ViewData["Title"]</h1>*@
+
+
+<style>
+    .popup-background {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        z-index: 1001;
+    }
+
+    .product-card {
+        border: 1px solid #ccc;
+        margin: 10px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column; /* Align card content vertically */
+    }
+
+        /* Style for the product images */
+        .product-card img {
+            width: 100%;
+            max-height: 200px; /* Adjusted max-height value for images */
+            object-fit: cover; /* Maintain aspect ratio and cover entire area */
+        }
+
+    .card-body {
+        padding: 5px; /* Add padding to create space around card content */
+    }
+
+    .card-text {
+        margin-top: 5px; /* Add margin between paragraphs for spacing */
+    }
+
+    .text-overlay {
+        position: absolute;
+        top: 34%;
+        left: 25%;
+        width: 50%;
+        height: 13%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 0, 0, 0.5);
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        opacity: 1; /* Initially hidden */
+        transition: opacity 0.3s ease;
+        border: 1px solid red; /* Add a white border around the text */
+        border-radius: 10px;
+        box-sizing: border-box; /* Include the border in the element's dimensions */
+    }
+
+    .midtextbutton{
+        width: 50%;
+    }
+</style>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="popupBackground" class="popup-background">
+        <div id="popup" class="popup">
+            <p>@TempData["ErrorMessage"]</p>
+            <button id="closeButton" class="popup-button">Close</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var popupBackground = document.getElementById("popupBackground");
+            var popup = document.getElementById("popup");
+            var closeButton = document.getElementById("closeButton");
+
+            popupBackground.style.display = "block";
+            popup.style.display = "block";
+
+            closeButton.addEventListener("click", function () {
+                popupBackground.style.display = "none";
+                popup.style.display = "none";
+            });
+        });
+    </script>
+}
+<div class="container">
+    <div class="row" id="productList">
+        <!-- Products will be populated here -->
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function loadProducts() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetProducts", "Home")',
+                success: function (data) {
+                    var productList = $('#productList');
+                    productList.empty();
+
+                    $.each(data, function (index, product) {
+                        var dateEnd = new Date(product.dateEnd);
+                        var formattedDateEnd = formatDate(dateEnd);
+                        productList.append(
+                        '<div class="col-md-4">' +
+                            '<div class="card product-card">' +
+                                '<a href="Products/Details/' + product.id + '" ; " > ' +
+                                    '<div class="image-container">' +
+                                    '<img src="/Upload/' + product.image + '" class="card-img-top" alt="Product Image">' +
+                            '<div class="text-overlay text-center">' + formattedDateEnd + '</div>' + <!--Text overlay on image-- >
+                                    '</div>' +
+                                '</a>' +
+                                '<div class="card-body">' +
+                                    '<p class="card-text">' + product.title + '</p>' +
+                                    '<p class="card-text">Start Price: ' + product.priceStart + '</p>' +
+                                    '<p class="card-text">Owner : ' + product.user.email + '</p>' +
+                                    '<p class="card-text">Owner : ' + product.userGet.email + '</p>' +
+                                    '<form class="edit-form" action="/Home/Offer" method="post" onsubmit="return showConfirmation()">' +
+                                    '<input type="hidden" name="productId" value="' + product.id + '" />' +
+                                    '<input type="hidden" name="priceFinish" value="' + product.priceFinish + '" />' +
+                                    '<div class="text-center">' +
+                        '<button type="submit" class="btn btn-primary midtextbutton">Offer</button>' +
+                                     '</div>' +
+                                   
+                                    '</form>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' 
+                       
+                        );
+                    });
+                }
+            });
+        }
+        function formatDate(date) {
+            var options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+            return date.toLocaleDateString('en-US', options);
+        }
+        $(document).on('submit', '.edit-form', function () {
+            var confirmation = confirm('Are you sure you want to proceed?');
+            if (!confirmation) {
+                return false; // Prevent form submission
+            }
+        });
+
+        var Loadproduct = setInterval(loadProducts, 1000);
+    </script>
+}
+@*
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">Title</th>
+            <th>Description</th>
+            <th>Date Start</th>
+            <th>Date End</th>
+            <th>Image</th>
+            <th>Start Price</th>
+            <th>End Price</th>
+            <th>Finish Price</th>
+            <th>Price Jump</th>
+            <th>User</th>
+            <th>User Get</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="productList">
+        <!-- Products will be populated here -->
+    </tbody>
+</table>
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+
+
+        function loadProducts() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetProducts", "Home")',
+                success: function (data) {
+                    var productList = $('#productList');
+                    productList.empty();
+
+                    $.each(data, function (index, product) {
+                        productList.append('<tr>' +
+                            '<td>' + product.id + '</td>' +
+                            '<td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis;">' + product.title + '</td>' +
+                            '<td>' + product.description + '</td>' +
+                            '<td>' + product.dateStart + '</td>' +
+                            '<td>' + product.dateEnd + '</td>' +
+                            '<td><img src="/Upload/' + product.image + '" alt="Product Image" width="100" /></td>' +
+                            '<td>' + product.priceStart + '</td>' +
+                            '<td>' + product.priceEnd + '</td>' +
+                            '<td>' + product.priceFinish + '</td>' +
+                            '<td>' + product.priceJump + '</td>' +
+                            '<td>' + product.user.email + '</td>' +
+                            '<td>' + product.userGet.email + '</td>' +
+                            '<td>' +
+                            '<form class="edit-form" action="/Home/Offer" method="post" onsubmit="return showConfirmation()">' +
+                            '<input type="hidden" name="productId" value="' + product.id + '" />' +
+                            '<input type="hidden" name="priceFinish" value="' + product.priceFinish + '" />' +
+                            '<button type="submit" class="btn btn-primary">Edit</button>' +
+                            '</form>' +
+                            '</td>' +
+                            '</tr>');
+                    });
+                }
+            });
+        }
+
+        $(document).on('submit', '.edit-form', function () {
+            var confirmation = confirm('Are you sure you want to proceed?');
+            if (!confirmation) {
+                return false; // Prevent form submission
+            }
+        });
+
+        var Loadproduct = setInterval(loadProducts, 1000);
+        ;
+    </script>
+}*@
