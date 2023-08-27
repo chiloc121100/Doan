@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<AuctionProject.Models.Product>
 
 @{
+
     ViewData["Title"] = "Privacy Policy";
 }
 @*<h1>@ViewData["Title"]</h1>*@
-
 
 <style>
     .popup-background {
@@ -41,6 +41,8 @@
         /* Style for the product images */
         .product-card img {
             width: 100%;
+            min-width: 200px;
+            min-height: 200px;
             max-height: 200px; /* Adjusted max-height value for images */
             object-fit: cover; /* Maintain aspect ratio and cover entire area */
         }
@@ -56,8 +58,8 @@
     .text-overlay {
         position: absolute;
         top: 34%;
-        left: 25%;
-        width: 50%;
+        left: 17%;
+        width: 65%;
         height: 13%;
         display: flex;
         align-items: center;
@@ -76,13 +78,24 @@
     .midtextbutton{
         width: 50%;
     }
+    .borderMenu
+    {
+        border-style: solid;
+        border-color: red;
+    }
+    .borderTable
+    {
+        border: 2px solid #7f7f7f;
+        border-radius: 25px;
+    }
 </style>
 @if (TempData["ErrorMessage"] != null)
 {
     <div id="popupBackground" class="popup-background">
         <div id="popup" class="popup">
             <p>@TempData["ErrorMessage"]</p>
-            <button id="closeButton" class="popup-button">Close</button>
+            <button id="closeButton" class="popup-button d-inline-flex">Close</button>
+            <a href="~/Identity/Account/Login" id="closeButton" class="popup-button d-inline-flex">Login</a>
         </div>
     </div>
     <script>
@@ -101,16 +114,34 @@
         });
     </script>
 }
-<div class="container">
-    <div class="row" id="productList">
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-1 border-right">
         <!-- Products will be populated here -->
+        <h1> Search </h1>
+            <input type="text" id="searchInput" placeholder="Search text...">
+            <h4><label><input type="checkbox" id="dateEndSearch"> DateEnd</label></h4>
+            <h4><label><input type="checkbox" id="dateStartSearch"> DateStart</label></h4>
+        </div>
+        <div class="col-sm-1"></div>
+        <div class="row col-sm-8 rounded bg-light borderTable" id="productList">
+            <!-- Products will be populated here -->
+        </div>
+        <div class="col-sm-1"></div>
     </div>
+    
 </div>
+</body>
 
 @section scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function loadProducts() {
+            var applyFilter = $('#dateEndSearch').prop('checked');
+            var applyFilter2 = $('#dateStartSearch').prop('checked');
+            var searchInput = $('#searchInput').val().toLowerCase();
             $.ajax({
                 type: 'GET',
                 url: '@Url.Action("GetProducts", "Home")',
@@ -121,33 +152,43 @@
                     $.each(data, function (index, product) {
                         var dateEnd = new Date(product.dateEnd);
                         var formattedDateEnd = formatDate(dateEnd);
-                        productList.append(
-                        '<div class="col-md-4">' +
+                        var searchTitle = product.title.toLowerCase();
+                        var productCard = '<div class="col-sm-4">' +
                             '<div class="card product-card">' +
-                                '<a href="Products/Details/' + product.id + '" ; " > ' +
-                                    '<div class="image-container">' +
-                                    '<img src="/Upload/' + product.image + '" class="card-img-top" alt="Product Image">' +
-                            '<div class="text-overlay text-center">' + formattedDateEnd + '</div>' + <!--Text overlay on image-- >
-                                    '</div>' +
-                                '</a>' +
-                                '<div class="card-body">' +
-                                    '<p class="card-text">' + product.title + '</p>' +
-                                    '<p class="card-text">Start Price: ' + product.priceStart + '</p>' +
-                                    '<p class="card-text">Owner : ' + product.user.email + '</p>' +
-                                    '<p class="card-text">Owner : ' + product.userGet.email + '</p>' +
-                                    '<form class="edit-form" action="/Home/Offer" method="post" onsubmit="return showConfirmation()">' +
-                                    '<input type="hidden" name="productId" value="' + product.id + '" />' +
-                                    '<input type="hidden" name="priceFinish" value="' + product.priceFinish + '" />' +
-                                    '<div class="text-center">' +
-                        '<button type="submit" class="btn btn-primary midtextbutton">Offer</button>' +
-                                     '</div>' +
-                                   
-                                    '</form>' +
-                                '</div>' +
+                            '<a href="Products/Details/' + product.id + '"> ' +
+                            '<div class="image-container">' +
+                            '<img src="/Upload/' + product.image + '" class="card-img-top" alt="Product Image">' +
+                            '<div class="text-overlay text-center">' + formattedDateEnd + '</div>' +
                             '</div>' +
-                        '</div>' 
-                       
-                        );
+                            '</a>' +
+                            '<div class="card-body">' +
+                            '<p class="card-text">' + product.title + '</p>' +
+                            '<p class="card-text">Start Price: ' + product.priceStart + '</p>' +
+                            '<p class="card-text">Owner: ' + product.user.email + '</p>' +
+                            '<p class="card-text">Offered: ' + product.userGet.email + '</p>' +
+                            '<form class="edit-form" action="/Home/Offer" method="post" onsubmit="return showConfirmation()">' +
+                            '<input type="hidden" name="productId" value="' + product.id + '" />' +
+                            '<input type="hidden" name="priceFinish" value="' + product.priceFinish + '" />' +
+                            '<div class="text-center">' +
+                            '<button type="submit" class="btn btn-primary midtextbutton">Offer</button>' +
+                            '</div>' +
+                            '</form>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+                        if (!applyFilter && !applyFilter2 && !searchInput) {
+                            //display list by productCard
+                            productList.append(productCard);
+                        }
+                        else if ((applyFilter && new Date(product.dateEnd) > new Date()) && !searchInput) {
+                            productList.append(productCard);
+                        }
+                        else if ((applyFilter2 && new Date(product.dateEnd) < new Date()) && !searchInput) {
+                            productList.append(productCard);
+                        }
+                        else if (searchInput && searchTitle.includes(searchInput)) {
+                            productList.append(productCard);
+                        }
                     });
                 }
             });
@@ -166,6 +207,9 @@
         var Loadproduct = setInterval(loadProducts, 1000);
     </script>
 }
+
+
+
 @*
 <table class="table table-striped">
     <thead>
