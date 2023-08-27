@@ -88,6 +88,30 @@
         border: 2px solid #7f7f7f;
         border-radius: 25px;
     }
+    .fixMap{
+        position: fixed;
+        width: 250px;
+        height: 80%;
+    }
+    .fixMap1{
+        margin: 5px;
+        padding: 5px;
+    }
+
+    .fixMap2 {
+        margin: 10px;
+    }
+
+  .hidden-element {
+    display: none;
+  }
+
+  @@media screen and (min-width: 1700px) {
+    .hidden-element {
+            display: block; /* hide min-width: 1700px */
+        }
+  }
+
 </style>
 @if (TempData["ErrorMessage"] != null)
 {
@@ -119,11 +143,18 @@
     <div class="row">
         <div class="col-sm-1"></div>
         <div class="col-sm-1 border-right">
-        <!-- Products will be populated here -->
-        <h1> Search </h1>
-            <input type="text" id="searchInput" placeholder="Search text...">
-            <h4><label><input type="checkbox" id="dateEndSearch"> DateEnd</label></h4>
-            <h4><label><input type="checkbox" id="dateStartSearch"> DateStart</label></h4>
+            <!-- Products will be populated here -->
+                <div class="fixMap bg-light borderTable hidden-element">
+                    <div class="fixMap1">
+                <h1> Search </h1>
+                        <input type="text" id="searchInput" placeholder="Search text...">
+                        <div class="fixMap2">
+                          
+                    <h5><label><input type="checkbox" id="dateEndSearch"> DateEnd</label></h5>
+                    <h5><label><input type="checkbox" id="dateStartSearch"> DateStart</label></h5>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-sm-1"></div>
         <div class="row col-sm-8 rounded bg-light borderTable" id="productList">
@@ -131,7 +162,11 @@
         </div>
         <div class="col-sm-1"></div>
     </div>
-    
+    <div class="Row">
+            <div class="col-sm-1">
+                <p> Das </p>
+            </div>
+        </div>
 </div>
 </body>
 
@@ -204,7 +239,7 @@
             }
         });
 
-        var Loadproduct = setInterval(loadProducts, 1000);
+        var Loadproduct = setInterval(loadProducts, 5000);
     </script>
 }
 
